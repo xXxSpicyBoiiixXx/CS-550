@@ -11,9 +11,9 @@ We can see in the code that the client send ***Hello World*** and then the serve
 
 Some other things to note about some main function available in this interface....
 
-* socket(): To create an object representing the connection
-* accept(): A blocking call to wait for incoming connection requests. Once there is a connection, the call will then return a new socket for a separate connection
-* connect(): Sets up a connection to a specified party
-* close(): Close an open connection
-* send(): Send data over a connection
-* recv(): Recieve data over a connection
+* ***socket()***: To create an object representing the connection
+* ***accept()***: A blocking call to wait for incoming connection requests. Once there is a connection, the call will then return a new socket for a separate connection
+* ***connect()***: Sets up a connection to a specified party
+* ***close()***: Close an open connection
+* ***send()***: Send data over a connection
+* ***recv()***: Recieve data over a connection
