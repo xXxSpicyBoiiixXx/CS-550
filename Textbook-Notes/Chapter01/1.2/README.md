@@ -71,4 +71,60 @@ In theory, it seems that we need some strict speartion of polict and mechanism. 
 
 The stricter the separation, the more we need to make sure that we offer the appropriate collection of mechanisms.
 
-This causes 
+### Being Scalable
+There are three dimensions of scalability.
+
+* Size Scalability: To respect in th e size (adding more users or resources without noticeable loss of performance)
+
+* Geographical Scalability: Where users and resources can be far apart but the fact that communication delays be significant isn't noticeable.
+
+* Administrative Scalability: Can managed easily even if it spans many independent administrative organizations.
+
+***Size Scalability***
+There are some limitiations when we try to add users or resources, these can be that services are centralized in that they are on a single server running on a specific machine in the distributed system. The problem is that you can have a bottleneck with an increase number of requests. 
+
+There are several solution for size scalability problems. There is a nice mathematical solution to showcase it.
+
+***Geographical Scalability*** 
+This is difficult to scale as existing distributing systems that were designed for local-area networks is that all of them are based on synchronous communication. This works for LANs but not really for WANs.
+
+Another problem is limited bandwidth in WANs as well as very limited facilites for multipoint communcations unlike thier counterparts LANs.
+
+***Administrative Scalability*** 
+This is the hardest one with regards to resource usage, management, and security. Since some policies maybe conflicting. One solution is a computational grid. This can be done to expand the system into another domain. Two things must be considered, the distributed system must protect itself against malicious attacks from the new domain and the new domain has to protect itself from malicious attacks from the distirbuted system. 
+
+The textbook goes over a few scaling techniques such as...
+
+* Scaling Up: Improving the capacity 
+
+* Scaling Out: Expanding the distributed system by deploying more machines; This only come with three techniques which are hiding communication latencies, distribution of work, and replication. 
+
+***Hiding Communication Latencies*** 
+This is applicable in the case of geographical scalability. Try to avoid waiting for responses to remote-service request as much as possible. 
+
+***Distribution of work***
+This involves taking a component, splitting it into smaller parts, and subsequently spreading those parts across the system. The textbook has some examples. 
+
+***Replication*** 
+Replication increases availability, but balance the load between componenets leading to better performance. There 
+
+## Pitfalls 
+The following are false assumptions that everyone makes when making a distributed application for the first time...
+
+* The network is reliable 
+
+* The network is secure
+
+* The network is homogenous 
+
+* The topology does not change 
+
+* Latency is zero 
+
+* Bandwidth is infinite 
+
+* Transport cost is zero 
+
+* There is one administrator
+
+Most of these things are discussed in this book relate to these assumptions. Some solution to problems are caused by the fact that one or more assumptions are false. 
