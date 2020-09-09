@@ -16,4 +16,3 @@ Cluster computing became popular when the price/performance ratio of personal co
 
 ### Grid Computing 
 There are no assumpitoins made of the hardware, operating systems, networks, domains,etc. This results in virtual organization. There seems to be architectural issues as different orginzations try and use the same resources. 
-
