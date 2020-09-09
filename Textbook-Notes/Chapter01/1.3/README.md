@@ -10,4 +10,7 @@ This chapter deals with various types of distributed systems. There are distinct
 
 ***Cloud Computing*** consists of have the entire infranstructure outsource for applications. This is essentailly providing dunamical infrasturcture and makes it where what is needed. 
 
+### Cluster Computing 
+
+Cluster computing became popular when the price/performance ratio of personal computers and workstations improved. 
 
