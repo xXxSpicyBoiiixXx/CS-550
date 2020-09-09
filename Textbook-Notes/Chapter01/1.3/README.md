@@ -12,5 +12,8 @@ This chapter deals with various types of distributed systems. There are distinct
 
 ### Cluster Computing 
 
-Cluster computing became popular when the price/performance ratio of personal computers and workstations improved. 
+Cluster computing became popular when the price/performance ratio of personal computers and workstations improved. There is a master node that acts like a middleware for all the slave machines. This shows a problem, as the compute nodes are seen to be highly identical. There is a even more symmetric approach followed in the MOSIX system where it attempts to be a ***single-system image*** of a cluster, where its the ultimate distribution transparency by appearing to be a single computer. In traditonal cluster computing, the computers are largely the same, having the same operating system, all while being on the same netowrk. 
+
+### Grid Computing 
+There are no assumpitoins made of the hardware, operating systems, networks, domains,etc. This results in virtual organization. There seems to be architectural issues as different orginzations try and use the same resources. 
 
