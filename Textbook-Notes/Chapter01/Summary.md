@@ -1,21 +1,19 @@
-# Chapter 01 Notes 
+# Summary Chapter 01
 
-The notes here are broken up into sections on what I deemed most important from the textbook and written in a way that makes sense to me to review for later. Below are terms in this chapter that helped me understand it better.
+Distributed systems consist of autonomous computers that work together to give the apperance of a single coherent system. 
 
-## Some Vocabulary
+Middleware is a software layer logically placed between operating systems and distrbuted applications. 
 
-* Plug Computers: Small computers that can be plugged directly into an outlet an offer near-desktop performance.
+Design goals for distributed systems include sharing resources and ensuring openness. 
 
-* Node: A computing element. Can be either hardware device or a software process.
+Distribution Transparenct is never achieved and it also comes at a price of money and performance. 
 
-* Open Group: Any node is allowed to join the distributed system. Meaning it can send messages to any node in the system.
+One design goal that doesn't go with transperency is scalability. Sometimes administrative scalability. 
 
-* Closed Group: Only the members of that group can communicate with each other, there is a spiecal mechnaism needed to let a node join or leave this type of group. 
+Lots of assumptions are made, but when they are dropped then it makes it difficult to fix the system. 
 
-* Structured Overlay Network: Each node has a well-definded set of neighbors with who they communicate with. e.g. tree or logical ring.
+Distributed computing systems are deployed for HPCs and sharing of resources. 
 
-* Unstructed Overlay Network: Each node has a number of referecnes to randomly selected other nodes. 
+THere is a class of distributing systems where the components are small and many. This is more so for pervasive computing enivronments. 
 
-* Distribution Transparency: The user should not be able to tell which computer a process is executing, where the data is stored, or anything else. 
 
-* Middleware: Often organized with distributed systems as a separate layer of software placed on top of the operating systems of computers that are in the system.

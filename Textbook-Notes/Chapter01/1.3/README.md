@@ -40,10 +40,17 @@ Cloud computing has multiple layers as well.
 
 ***Hardware Layer*** - The lowest layer is formed with the necessary hardware. 
 
-***Infrastructure Layer*** - 
+***Infrastructure Layer*** -  Most important layer forming the backbone for the most cloud computing platforms. 
 
+***Platform Layer*** - This provides to a cloud computing customer what an OS proides to an application developers. Namely the means to easily develop and deploy applications that need to run in a cloud. In this layer they use something called buckets which is like a directory within the cloud. 
 
+***Application Layer*** - Applications run in this later and offer users for futher customization. 
 
+There are three different types of services:
+
+***IaaS (Infrastrucutre-as-a-Service)*** covering the hardware and infrasturucture
+***PaaS (Platform-as-a-Service)*** covering the platform layer
+***SaaS (Software-as-a-Service)*** in which their application are covered
 
 ### Distributed Transaction Processsing 
 The transaction adhere to the so-called ACID properties: 
@@ -52,3 +59,47 @@ The transaction adhere to the so-called ACID properties:
 * Consistent: The transaction does not violate system invariants 
 * Isolated: Concurrent transactions do not interfere with each other 
 * Durable: Once a transaction commits, the changes are permanent 
+
+In distributed system, transactions are often constructed as a number of subtransactions, jointly forming a *nested transactions* 
+
+Nested transactions are important in distributed systems, for it is a natural way of distributing a transaction across multiple systems. 
+
+### Enterprise Application Integration 
+This is where RPC are taking contorl in process and RMI is the same as RPC except it works on objects instead of functions. The tight coupling is often experiences as serious drawback which lead to message oriented middleware or MOM. 
+
+### Pervasive Systems 
+This is basically the system are intended to naturally bled into our environment. This is equiped with many sensors that pick up various aspects of a user's behavior. There was mtriad of actuators to provide infromation and feedback, often even purposefully aiming to steer behavior. 
+
+There are three different types of pervasive systems. 
+
+* Ubiquitous Computing Systems 
+* Mobile Systems 
+* Sensor Networks 
+
+### Ubiquitous Computing Systems
+This goes one step further from pervasive system in the since that the system will be pervasive and continuouosly present. 
+
+The following are the core requirements for a ubiquitious computing system. 
+
+* Distribution: Devices are networked, distributed, and accessible in a transparent manner
+* Interaction: Interaction between users and devices is highly unobtrusive
+* Context Awareness: The system is aware of a user's context in order to optimize interaction 
+* Autonomy: Devices operate autonomously without human intervention, and thus are highly self-managed
+* Intelligence: The system as a whole can handle a wide range of dynamic actions and interactions. 
+
+### Mobile Computing Systems
+All aspects so far apply to mobile computing systems. 
+
+These are obviously mobile as in can move. The trick is not to attempt to set up a communciation path from the source to the destination but to rely on two things. 
+
+* The first is using speical flooding-based techniques will allow a message to gradually spread throught a part of the network, to eventually reach the destination. 
+
+* The second is distrpution-tolerant netowrk, there is an intermediate node store a received message until it encounters another node to which it can pass it along to. 
+
+### Sensor Networks
+Many solutions for sensor netowrks are returned into pervasive applications. This usually consists of tens to hunders or thouses of relativelt small nodes, all with one more senesing devices. This requires a lot of energy and there is some solutions that are not favorable. 
+
+
+
+
+
