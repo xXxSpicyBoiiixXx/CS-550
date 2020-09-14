@@ -14,7 +14,13 @@ The goal of distributed system is to separate applications from underlying paltf
 
 * Layered Organization with Upcalls: This is convient to have a lower layer do an upcall to its next higher layer. 
 
-* Layered Communication Sevices: 
+* Layered Communication Sevices: Each layer implements one or several communication services allowing data to be sent form a destination to one or several targets. Some important concepts are that each layer offers an interface for functions to be called and in communication there is a protocol where set rules are established to exchange information. 
+
+* Object-based Architetures: Each object corresponds with a component, and tehy are all connected through a procedure call mechnaism. In distributed systems, a procedure call can also take place over a network, this means that the calling object need not be executed on the same machines as the called object. 
+
+
+
+
 
 
 

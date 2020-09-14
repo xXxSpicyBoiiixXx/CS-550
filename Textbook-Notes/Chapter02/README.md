@@ -18,4 +18,14 @@ The notes here are broken up into sections on what I deemed most important from 
 
 * Upcall: A component at a high-level layer expect a response. 
 
+* Communication Protocol: The rules that parties will have to follow in order to exchange information.
 
+* Persistent: Even if no application is running, data will be stored somewhere for next use. 
+
+* Object's State: Natural of encapsulating data.
+
+* Object's Methods: Operatins that can be performed on that data.
+
+* Proxy: Cleint binds to a distributed obejct, an implementation of the object's interface.
+
+* Skelton: Server-Side stub.
