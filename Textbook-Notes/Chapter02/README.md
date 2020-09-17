@@ -29,3 +29,7 @@ The notes here are broken up into sections on what I deemed most important from 
 * Proxy: Cleint binds to a distributed obejct, an implementation of the object's interface.
 
 * Skelton: Server-Side stub.
+
+* Remote Objects: Objects is that their state is not distributed, it resides at a single machine. Only the interfaces implemented by the object are made avaliable on other machiens. 
+
+
