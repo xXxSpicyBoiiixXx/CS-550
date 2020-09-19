@@ -41,6 +41,12 @@ There are four characteristics of what are known as RESTful architectures.
 
 ### Publish-Subscribe Architectures 
 
+* Class of distributed systems have adopted an architecutre in which there is a strong separation between processing and coordination. 
+
+* Coordination: Encompasses the communication and cooperation between processes. 
+
+* Direct Coordination: When processes are temporally and referentially coupled, coordination takes place in a direct way. 
+
 * 
 
 
