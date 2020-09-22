@@ -6,6 +6,10 @@ This course is being taken in the Fall of 2020. I will be dumping my notes as we
 
 https://www.distributed-systems.net/index.php/books/ds3/ds3-ebook/
 
+Here is Dr. Sun's webstie for the class 
+
+http://www.cs.iit.edu/~sun/cs550.html
+
 Please read the disclaimer. As always, if there are any questions or concerns, please let me know. 
 
 ***Disclaimer: If you are targeted for plagerism due to copying my work I will not be held responsible for your actions. Please cite this if your professor allows it, but again I will not be responsible for any academic misconduct that you recieve.***
