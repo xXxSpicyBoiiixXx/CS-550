@@ -1,106 +1,80 @@
 /*
 # FILE: client.c
-# USAGE: --
-# DESCRIPTION: 
+# USAGE: make sure to complie using gcc client.c -o client and then you can excute the file as ./client
+# DESCRIPTION: Connects to the server and sends a command "Get FILENAME" to get a file. If the file exists on the server, client retrieves it.
 # OPTIONS: --
 # REQUIREMENTS: --
 # BUGS: --
 # AUTHOR: xXxSpicyBoiiixXx (Md Ali)
 # ORGANIZATION: --
 # VERSION: 1.0
-# CREATED: 09/22/2020
+# CREATED: 09/28/2020
 REVISION: --
 */
 
-#include <arpa/inet.h> 
-#include <netinet/in.h> 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
-#include <unistd.h> 
-  
-#define IP_PROTOCOL 0 
-#define IP_ADDRESS "127.0.0.1" // localhost 
-#define PORT_NO 15050 
-#define NET_BUF_SIZE 32 
-#define cipherKey 'S' 
-#define sendrecvflag 0 
-  
-// function to clear buffer 
-void clearBuf(char* b) 
-{ 
-    int i; 
-    for (i = 0; i < NET_BUF_SIZE; i++) 
-        b[i] = '\0'; 
-} 
-  
-// function for decryption 
-char Cipher(char ch) 
-{ 
-    return ch ^ cipherKey; 
-} 
-  
-// function to receive file 
-int recvFile(char* buf, int s) 
-{ 
-    int i; 
-    char ch; 
-    for (i = 0; i < s; i++) { 
-        ch = buf[i]; 
-        ch = Cipher(ch); 
-        if (ch == EOF) 
-            return 1; 
-        else
-            printf("%c", ch); 
-    } 
-    return 0; 
-} 
-  
-// driver code 
-int main() 
-{ 
-    int sockfd, nBytes; 
-    struct sockaddr_in addr_con; 
-    int addrlen = sizeof(addr_con); 
-    addr_con.sin_family = AF_INET; 
-    addr_con.sin_port = htons(PORT_NO); 
-    addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS); 
-    char net_buf[NET_BUF_SIZE]; 
-    FILE* fp; 
-  
-    // socket() 
-    sockfd = socket(AF_INET, SOCK_DGRAM, 
-                    IP_PROTOCOL); 
-  
-    if (sockfd < 0) 
-        printf("\nfile descriptor not received!!\n"); 
-    else
-        printf("\nfile descriptor %d received\n", sockfd); 
-  
-    while (1) { 
-        printf("\nPlease enter file name to receive:\n"); 
-        scanf("%s", net_buf); 
-        sendto(sockfd, net_buf, NET_BUF_SIZE, 
-               sendrecvflag, (struct sockaddr*)&addr_con, 
-               addrlen); 
-  
-        printf("\n---------Data Received---------\n"); 
-  
-        while (1) { 
-            // receive 
-            clearBuf(net_buf); 
-            nBytes = recvfrom(sockfd, net_buf, NET_BUF_SIZE, 
-                              sendrecvflag, (struct sockaddr*)&addr_con, 
-                              &addrlen); 
-  
-            // process 
-            if (recvFile(net_buf, NET_BUF_SIZE)) { 
-                break; 
-            } 
-        } 
-        printf("\n-------------------------------\n"); 
-    } 
-    return 0; 
-} 
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define FILENAME    "a.txt"
+#define SERVER_IP   "127.0.0.1"
+#define SERVER_PORT "65496"
+
+int main(int argc , char **argv)
+{
+    int     socket_desc;
+    struct     sockaddr_in server;
+    char     request_msg[BUFSIZ],
+        reply_msg[BUFSIZ];
+
+    // Variables for the file being received
+    int    file_size,
+        file_desc;
+    char    *data;
+        
+    socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_desc == -1)
+    {
+        perror("Could not create socket");
+        return 1;
+    }
+
+    server.sin_addr.s_addr = inet_addr(SERVER_IP);
+    server.sin_family = AF_INET;
+    server.sin_port = htons(SERVER_PORT);
+
+    // Connect to server
+    if (connect(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+        perror("Connection failed");
+        return 1;
+    }
+
+    // Get a file from server
+    strcpy(request_msg, "Get ");
+    strcat(request_msg, FILENAME);
+    write(socket_desc, request_msg, strlen(request_msg));
+    recv(socket_desc, reply_msg, 2, 0);
+    
+    // Start receiving file
+    if (strcmp(reply_msg, "OK") == 0) {
+
+        recv(socket_desc, &file_size, sizeof(int), 0);
+        data = malloc(file_size);
+        file_desc = open(FILENAME, O_CREAT | O_EXCL | O_WRONLY, 0666);
+        recv(socket_desc, data, file_size, 0);
+        write(file_desc, data, file_size);
+        close(file_desc);
+    }
+    else {
+
+        fprintf(stderr, "Bad request\n");
+    }
+
+    return 0;
+}

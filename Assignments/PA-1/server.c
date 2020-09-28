@@ -1,132 +1,86 @@
 /*
 # FILE: server.c
-# USAGE: --
-# DESCRIPTION:  
+# USAGE: make sure to complie using gcc server.c -lpthread -o server and then you can excute the file as ./sever
+# DESCRIPTION: If any client connects to the server retrieves a file with the command "Get FILENAME", the server will retrieve the file. If the file does not exist then the server will notify the client with an error message.
 # OPTIONS: --
 # REQUIREMENTS: --
 # BUGS: --
 # AUTHOR: xXxSpicyBoiiixXx (Md Ali)
 # ORGANIZATION: --
 # VERSION: 1.0
-# CREATED: 09/22/2020
+# CREATED: 09/28/2020
 REVISION: --
 */
 
-#include <arpa/inet.h> 
-#include <netinet/in.h> 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
-#include <unistd.h> 
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/sendfile.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <pthread.h>
+
+#define SERVER_PORT 8080
+
+void* ConnectionHandler(void* socket_desc);
+char* GetFilenameFromRequest(char* request);
+
+bool SendFileOverSocket(int socket_desc, char* file_name);
   
-#define IP_PROTOCOL 0 
-#define PORT_NO 15050 
-#define NET_BUF_SIZE 32 
-#define cipherKey 'S' 
-#define sendrecvflag 0 
-#define nofile "File Not Found!" 
-  
-// function to clear buffer 
-void clearBuf(char* b) 
-{ 
-    int i; 
-    for (i = 0; i < NET_BUF_SIZE; i++) 
-        b[i] = '\0'; 
-} 
-  
-// function to encrypt 
-char Cipher(char ch) 
-{ 
-    return ch ^ cipherKey; 
-} 
-  
-// function sending file 
-int sendFile(FILE* fp, char* buf, int s) 
-{ 
-    int i, len; 
-    if (fp == NULL) { 
-        strcpy(buf, nofile); 
-        len = strlen(nofile); 
-        buf[len] = EOF; 
-        for (i = 0; i <= len; i++) 
-            buf[i] = Cipher(buf[i]); 
-        return 1; 
-    } 
-  
-    char ch, ch2; 
-    for (i = 0; i < s; i++) { 
-        ch = fgetc(fp); 
-        ch2 = Cipher(ch); 
-        buf[i] = ch2; 
-        if (ch == EOF) 
-            return 1; 
-    } 
-    return 0; 
-} 
-  
-// driver code 
-int main() 
-{ 
-    int sockfd, nBytes; 
-    struct sockaddr_in addr_con; 
-    int addrlen = sizeof(addr_con); 
-    addr_con.sin_family = AF_INET; 
-    addr_con.sin_port = htons(PORT_NO); 
-    addr_con.sin_addr.s_addr = INADDR_ANY; 
-    char net_buf[NET_BUF_SIZE]; 
-    FILE* fp; 
-  
-    // socket() 
-    sockfd = socket(AF_INET, SOCK_DGRAM, IP_PROTOCOL); 
-  
-    if (sockfd < 0) 
-        printf("\nfile descriptor not received!!\n"); 
-    else
-        printf("\nfile descriptor %d received\n", sockfd); 
-  
-    // bind() 
-    if (bind(sockfd, (struct sockaddr*)&addr_con, sizeof(addr_con)) == 0) 
-        printf("\nSuccessfully binded!\n"); 
-    else
-        printf("\nBinding Failed!\n"); 
-  
-    while (1) { 
-        printf("\nWaiting for file name...\n"); 
-  
-        // receive file name 
-        clearBuf(net_buf); 
-  
-        nBytes = recvfrom(sockfd, net_buf, 
-                          NET_BUF_SIZE, sendrecvflag, 
-                          (struct sockaddr*)&addr_con, &addrlen); 
-  
-        fp = fopen(net_buf, "r"); 
-        printf("\nFile Name Received: %s\n", net_buf); 
-        if (fp == NULL) 
-            printf("\nFile open failed!\n"); 
-        else
-            printf("\nFile Successfully opened!\n"); 
-  
-        while (1) { 
-  
-            // process 
-            if (sendFile(fp, net_buf, NET_BUF_SIZE)) { 
-                sendto(sockfd, net_buf, NET_BUF_SIZE, 
-                       sendrecvflag,  
-                    (struct sockaddr*)&addr_con, addrlen); 
-                break; 
-            } 
-  
-            // send 
-            sendto(sockfd, net_buf, NET_BUF_SIZE, 
-                   sendrecvflag, 
-                (struct sockaddr*)&addr_con, addrlen); 
-            clearBuf(net_buf); 
-        } 
-        if (fp != NULL) 
-            fclose(fp); 
-    } 
-    return 0; 
-} 
+// Driver function 
+int main(int argc, char **argv)
+{
+    //Intilizing
+    int socket_desc,
+        socket_client,
+        *new_sock;
+    
+    int c = sizeof(struct sockaddr_in);
+    
+    stuct sockaddr_i server,
+                     client;
+    
+    //Creating the socket
+    socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+    
+    if(socket_desc == -1)
+    {
+        perror("Could not create socket");
+        return 1;
+    }
+    
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(SERVER_PORT);
+    
+    if(bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+    {
+        perror("Bind failed");
+        return 1;
+    }
+    
+    listen(socket_desc, 3);
+    
+    while(socket_client = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c))
+    {
+        pthread_t sniffer_thread;
+        new_sock = malloc(1);
+        *new_sock = socket_client;
+        pthread_create(&sniffer_thread, NULL, ConnectionHandler, (void*) new_sock);
+        pthread_join(sniffer_thread, NULL)
+    }
+    
+    if (socket_client < 0)
+    {
+        perror("Accept failed.");
+        return 1;
+    }
+    
+    return 0;
+    
+}
+
