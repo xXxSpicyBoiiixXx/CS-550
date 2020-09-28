@@ -57,6 +57,16 @@ There are four characteristics of what are known as RESTful architectures.
 
 * Event Bus are abstarction of the mechnaism by which publishers and subscribers are matched. 
 
+* An important aspect of publish-subscribe systems is that communications takes place by descrbing the events that a subscriber is interest in. This makes naming very important. 
+
+* A notification that is describing an event is puvlished when it is avaliable for other process to read it. IN addtion, a subscription needs to go through the middleware in order to make a description of the event. These descriptions usually come in pair of attribute and value. This is commonly called topic-based publish-subscribe systems. 
+
+* An alternative to a topic-based publish-subscribe systems is a content-based publish-subscribe system where the subscription consist of pairs as well but insteas an attirubute and a range. In other words, this means that the specified attrivute will be taking a range of values instead of single value. 
+
+* The general rule of thumb is that the more complex a description is, the more difficult it will be to test weather it not mathces. 
+
+* The main issue with publish-subscribe systems is that they are not efficent and are not general scalable. 
+
 ### Linda Tuple Spaces (1980s)
 
 * There is a program modeling called "Linda" which is knows as a tuple space. This supports three oprtations: 
@@ -66,6 +76,5 @@ There are four characteristics of what are known as RESTful architectures.
 
 * Formally speaking, a tuple space is always modeled as a multiset, but in and rd are considered blocking operations. Meaning that they will be blocked until a matching tuple is found or becomes avaliable. 
 
-* An important aspect of publish-subscribe systems is that communications takes place by descrbing the events that a subscriber is interest in. This makes naming very important. 
 
 
