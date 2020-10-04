@@ -1,17 +1,3 @@
-/* FILE: FileUtility.java
- * USEAGE: --
- * DESCRIPTION: -- 
- * OPTIONS: --
- * REQUIREMENTS: -- 
- * BUGS: -- 
- * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
- * ORGANIZATION: IIT
- * VERSION: 1.0
- * CREATED: 10/03/2020
- * REVISION: -- 
-*/
-
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -302,5 +288,20 @@ public class FileUtility {
 			System.out.println("\nThe file could not be printed because it may not have been downloaded.");
 		}
 	}
+	
+	/*public static void main(String[] args) {
+		Scanner input = new Scanner(System.in);
+		String path = input.nextLine();
+		ArrayList<String> files = FileUtility.getFiles(path);
+		
+		for(String file : files) {
+			System.out.println(file);
+		}
+	}*/
+	
+	/*public static void main(String[] args) {
+		File file = new File(downloadLocation);
+		if (!file.exists())
+				file.mkdir();
+	}*/
 }
-

@@ -1,17 +1,3 @@
-/* FILE: CompareTest.java
- * USEAGE: --
- * DESCRIPTION: -- 
- * OPTIONS: --
- * REQUIREMENTS: -- 
- * BUGS: -- 
- * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
- * ORGANIZATION: IIT
- * VERSION: 1.0
- * CREATED: 10/01/2020
- * REVISION: -- 
-*/
-
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

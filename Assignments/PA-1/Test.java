@@ -1,17 +1,3 @@
-/* FILE: Test.java
- * USEAGE: --
- * DESCRIPTION: -- 
- * OPTIONS: --
- * REQUIREMENTS: -- 
- * BUGS: -- 
- * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
- * ORGANIZATION: IIT
- * VERSION: 1.0
- * CREATED: 10/01/2020
- * REVISION: -- 
-*/
-
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +46,7 @@ public class Test {
 				break;
 
 			case 2:
-				System.out.println("\nEnter client address and two file names you want to download:");
+				System.out.println("\nEnter peer address and two file names you want to download:");
 				hostAddress = input.readLine();
 				String file1 = input.readLine();
 				String file2 = input.readLine();

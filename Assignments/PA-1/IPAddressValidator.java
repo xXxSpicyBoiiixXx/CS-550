@@ -21,6 +21,6 @@ public class IPAddressValidator {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(validate("127.0.0.1"));
+		System.out.println(validate("192.168.206.128"));
 	}
 }

@@ -1,20 +1,20 @@
 JC = javac
 JR = java
-JFLAGS = -g -Wall
-
+JFLAGS  = -g -Wall 
+ 
 default: all
 
-all: 
+all:
 	$(JC) *.java
 
 clean: 
 	$(RM) *.class
 
 run_server:
-	$(JR) Server
+	$(JR) IndexingServer
 
-run_client:
-	$(JR) Client
+run_peer:
+	$(JR) Peer
 
 run_test:
 	$(JR) Test
