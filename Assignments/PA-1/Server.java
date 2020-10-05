@@ -245,7 +245,7 @@ public class Server {
       sb.append(clientNumber).append("#").append(clientAddress).append("#").append(time);
       serverDatabase.put(sb.toString(), files);
 
-      print(files.size() + " files synced with Peer " + clientNumber + " and added to index database");
+      print(files.size() + " files synced with client " + clientNumber + " and added to database");
 
       ConcurrentHashMap < String,
       ArrayList < String >> newFiles = new ConcurrentHashMap < String,

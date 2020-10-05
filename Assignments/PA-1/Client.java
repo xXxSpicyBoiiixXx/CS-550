@@ -38,7 +38,7 @@ public class Client {
 	public static void main(String[] args) throws IOException {
 		// Start a new Thread which acts as Client on Peer side
 		System.out.println("...Client Started....");
-		new PeerClient().start();
+		new ClientClient().start();
 		System.out.println("...Client Side Server Started...");
 		ServerSocket listener = new ServerSocket(CLIENT_SERVER_PORT);
         try {
@@ -193,10 +193,10 @@ public class Client {
 		        while (true) {
 		        	// Display different choices to the user
 		        	System.out.println("\nWhat do you want to do?");
-			        System.out.println("[1] Register files with indexing server.");
-			        System.out.println("[2] Lookup for a file at index server.");
-			        System.out.println("[3] Un-register all files of this peer from the indexing server.");
-			        System.out.println("[4] Print download log of this peer.");
+			        System.out.println("[1] Register files with the server.");
+			        System.out.println("[2] Lookup for a file in the server.");
+			        System.out.println("[3] Un-register all files of this client from the server.");
+			        System.out.println("[4] Print download log of this client.");
 			        System.out.println("[5] Exit.");
 			        System.out.print("Enter choice and press ENTER:");
 			        int option;

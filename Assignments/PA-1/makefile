@@ -11,10 +11,13 @@ clean:
 	$(RM) *.class
 
 run_server:
-	$(JR) IndexingServer
+	$(JR) Server
 
-run_peer:
-	$(JR) Peer
+run_client:
+	$(JR) Client
 
 run_test:
 	$(JR) Test
+
+run_test2:
+	$(JR) Test2
