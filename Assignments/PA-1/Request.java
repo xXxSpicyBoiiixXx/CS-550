@@ -1,3 +1,17 @@
+/* FILE: Request.java
+ * USEAGE: --
+ * DESCRIPTION: This will get the request type.
+ * OPTIONS: --
+ * REQUIREMENTS: -- 
+ * BUGS: -- 
+ * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
+ * ORGANIZATION: IIT
+ * VERSION: 1.0
+ * CREATED: 10/03/2020
+ * REVISION: -- 
+*/
+
+
 import java.io.Serializable;
 
 public class Request implements Serializable {

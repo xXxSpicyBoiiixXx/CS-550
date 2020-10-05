@@ -1,3 +1,16 @@
+/* FILE: Test.java
+ * USEAGE: --
+ * DESCRIPTION: Test for looking up files or downloading.
+ * OPTIONS: --
+ * REQUIREMENTS: -- 
+ * BUGS: -- 
+ * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
+ * ORGANIZATION: IIT
+ * VERSION: 1.0
+ * CREATED: 10/03/2020
+ * REVISION: -- 
+*/
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -19,19 +32,19 @@ public class Test {
 			input = new BufferedReader(new InputStreamReader(System.in));
 			String hostAddress, fileName;
 			
-			// Display different choices to the user
+			// Menu option for the user
 			System.out.println("\nWhat do you want to test?");
-			System.out.println("1.Lookup");
-			System.out.println("2.Download");
-			System.out.println("3.Exit.");
+			System.out.println("[1] Lookup");
+			System.out.println("[2] Download");
+			System.out.println("[3] Exit");
 			System.out.print("Enter choice and press ENTER:");
 			int option = 0;
 
-			// Check if the user has entered only numbers.
+			// Fail Safe
 			try {
 				option = Integer.parseInt(input.readLine());
 			} catch (NumberFormatException e) {
-				System.out.println("Wrong choice. Try again!!!");
+				System.out.println("INVALID CHOICE. PLEASE CHOOSE A VALID OPTION.");
 				System.exit(0);
 			}
 
@@ -46,7 +59,7 @@ public class Test {
 				break;
 
 			case 2:
-				System.out.println("\nEnter peer address and two file names you want to download:");
+				System.out.println("\nEnter client address and two file names you want to download:");
 				hostAddress = input.readLine();
 				String file1 = input.readLine();
 				String file2 = input.readLine();
@@ -60,7 +73,7 @@ public class Test {
 				System.exit(0);
 				break;
 			default:
-				System.out.println("Wrong choice. Try again!!!");
+				System.out.println("INVALID CHOICE. PLEASE CHOOSE A VALID OPTION.");
 				break;
 			}
 
@@ -115,7 +128,6 @@ public class Test {
 				e.printStackTrace();
 			} finally {
 				try {
-					// Closing all streams. Close the stream only if it is initialized 
 					if (out != null)
 						out.close();
 					
@@ -132,25 +144,25 @@ public class Test {
 	}
 	
 	private static class DownloadTest extends Thread {
-		private String peerAddress;
+		private String clientAddress;
 		private String fileName;
 		private static int counter = 1;
 		
 		public DownloadTest(String host, String file) {
-			this.peerAddress = host;
+			this.clientAddress = host;
 			this.fileName = file;
 		}
 		
 		public void run() {
 			long startTime, endTime, totalTime = 0, totalFileSize = 0;
 			double time, avgSpeed;
-			System.out.println("Test Started...");
+			System.out.println("Test Starting...");
 			BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 			
 			try {
 				for (int i = 0; i < TEST_COUNT; i++) {
 					startTime = System.currentTimeMillis();
-					FileUtility.downloadFile(peerAddress, 20000, fileName);
+					FileUtility.downloadFile(clientAddress, 11000, fileName);
 					endTime = System.currentTimeMillis();
 					totalTime += (endTime - startTime);
 					File file = new File("downloads/" + fileName);
