@@ -1,6 +1,6 @@
 /* FILE: FileCheckSumMD5.java
  * USEAGE: --
- * DESCRIPTION: Give the hash of a file.
+ * DESCRIPTION: -- 
  * OPTIONS: --
  * REQUIREMENTS: -- 
  * BUGS: -- 
@@ -27,6 +27,8 @@ public class FileCheckSumMD5 {
     }
 
     private static String checksum(String filepath, MessageDigest md) throws IOException {
+
+        // DigestInputStream is better, but you also can hash file like this.
         try (InputStream fis = new FileInputStream(filepath)) {
             byte[] buffer = new byte[1024];
             int nread;
