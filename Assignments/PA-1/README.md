@@ -19,4 +19,6 @@ There are logs being held in the server and for the IP I just took my local IP a
 
 The two other files run_test and run_test2 was not working and will break things. Unfortuantly I did not get a graph for perfomance as a result of my test scripts breaking. As well as I could not get the MD5 file to actually hash my files. 
 
+Using parts of this for programming assignment 2 as this is basically the second one lol.
+
  
