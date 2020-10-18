@@ -1,13 +1,13 @@
 /* FILE: LogUtility.java
  * USEAGE: --
- * DESCRIPTION: This file will log things depending on what is being logged i.e. Server, Client, or Replication.
+ * DESCRIPTION: 
  * OPTIONS: --
  * REQUIREMENTS: -- 
  * BUGS: -- 
  * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
  * ORGANIZATION: IIT
  * VERSION: 1.0
- * CREATED: 10/03/2020
+ * CREATED: 10/17/2020
  * REVISION: -- 
 */
 
@@ -28,8 +28,8 @@ public class LogUtility {
 
   public LogUtility(String logType) {
     try {
-      if (logType.equalsIgnoreCase("Client")) {
-        logFile = "download.log";
+      if (logType.equalsIgnoreCase("Peer")) {
+        logFile = "peerServer.log";
       } else if (logType.equalsIgnoreCase("Server")) {
         logFile = "server.log";
       } else if (logType.equalsIgnoreCase("Replication")) {
@@ -37,7 +37,8 @@ public class LogUtility {
       }
       // Create a logs folder if it doesn't exist
       File file = new File(logLocation);
-      if (!file.exists()) file.mkdir();
+      if (!file.exists()) 
+    	  file.mkdir();
 
       writer = new BufferedWriter(new FileWriter(logLocation + logFile, true));
     } catch(IOException e) {
