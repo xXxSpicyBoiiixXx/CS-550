@@ -10,3 +10,18 @@ all:
 clean: 
 	$(RM) *.class
 
+run_server: 
+	$(JR) Server 
+
+run_client:
+	$(JR) Client
+
+run:
+	$(JR) DistributedHashTable
+
+run_test: 
+	$(JR) DHTTest
+
+run_hash_test:
+	$(JR) HashTest
+
