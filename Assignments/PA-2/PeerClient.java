@@ -34,9 +34,14 @@ public class PeerClient extends Thread {
 	private HashMap<Integer, String> networkMap = null;
 	private ArrayList<String> replicationNodes = null;
 	
+	private static List<String> myIndexedLoc = Collections.synchronizedList(new ArrayList<String>());
+	private static final int PEER_SERVER_PORT = 11000;
+	private static final String REPLICATION_PATH = "replica/";
+	
 	private int portAddress = 0;
 	private String localAddress = null;
-	
+
+
 	// Initialize all the local data from the global data
 	public PeerClient() {
 		networkMap = DistributedHashTable.getNetworkMap();
@@ -47,10 +52,65 @@ public class PeerClient extends Thread {
 	
 	// Thread implementation for Peer to serve as CLient
 	public void run() {
+		Socket socket = null;
 		BufferedReader input = null;
+		ObjectInputStream in = null;
+		BufferedReader input = null;
+		ObjectOutputStream out = null;
+		Request peerRequest = null;
+		Response serverResponse = null;
 		
 		try {
 			input = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("Enter Server IP Address: ");
+			
+			String serverAddress = input.readLine();
+			
+			long startTime, endTime;
+			double time;
+			
+			 String key, value, confirm;
+			
+			if(serverAddress.trim().length() == 0 || !IPAddressValidator.validate(serverAddress))
+			{
+				System.out.println("Invalid Server IP Address:");
+				System.exit(0);
+			}
+			
+			socket = new Socket(serverAddress, 10000);
+			
+			out = new ObjectOutputStream(socket.getOutputStream());
+			out.flush();
+			
+			in = new ObjectInputStream(socket.getInputStream());
+			
+			serverResponse = (Response) in.readObject();
+			System.out.print((String) serverResponse.getResponseData());
+			
+			String replicaChoice = input.readLine();
+			peerRequest = new Request();
+			peerRequest.setRequestType("REPLICATION");
+			peerRequest.setRequestData(replicaChoice);
+			out.writeObject(peerRequest);
+			
+			if (replicaChoice.equalsIgnoreCase("Y")) {
+				// Read the Replication response from the server
+				myIndexedLoc.add(REPLICATION_PATH);
+				serverResponse = (Response) in.readObject();
+				ConcurrentHashMap<String, ArrayList<String>> data = (ConcurrentHashMap<String, ArrayList<String>>) serverResponse.getResponseData();
+				new ReplicationService(data).start();
+			}
+			
+			// Previously indexed locations if any
+			serverResponse = (Response) in.readObject();
+			ArrayList<String> indexedLocations =  (ArrayList<String>) serverResponse.getResponseData();
+			if (indexedLocations != null) {
+				for (String x : indexedLocations) {
+					if (!myIndexedLoc.contains(x)) {
+						myIndexedLoc.add(x);
+					}
+				}
+			}
 			
 			HashMap<String, String> hm = retrieveHashTable();
 			if (hm != null) {
@@ -65,14 +125,6 @@ public class PeerClient extends Thread {
 					DistributedHashTable.setReplicatedHashTable(rHashTable);
 				}
 			}
-			
-			//System.out.println(DistributedHashTable.getHashTable());
-			//System.out.println(DistributedHashTable.getReplicatedHashTable());
-			
-	        long startTime, endTime;
-	        double time;
-			
-	        String key, value, confirm;
 	        
 	        while (true) {
 	        	// Display different choices to the user
@@ -80,8 +132,11 @@ public class PeerClient extends Thread {
 		        System.out.println("1.Add a (key,value) pair.");
 		        System.out.println("2.Search for a key.");
 		        System.out.println("3.Delete a (key,value) pair.");
-		        System.out.println("4.Print log of this peer.");
-		        System.out.println("5.Exit.");
+		        System.out.println("4.Register files with indexing server.");
+		        System.out.println("5.Look up for a file at the indexing server.");
+		        System.out.println("6.Un-register al lfiles of this peer from the indexing server.");
+		        System.out.println("7.Print log of this peer.");
+		        System.out.println("8.Exit.");
 		        System.out.print("Enter choice and press ENTER:");
 		        int option;
 		        
@@ -176,13 +231,168 @@ public class PeerClient extends Thread {
 
 					break;
 					
+				//Registering files with indexing server.
+				case 4: 
+					System.out.println("\nEnter path of the files to sync with indexing server:");
+					String path = input.readLine();
+					
+					if(path.trim().length() == 0) {
+						System.out.println("Invalid Path.");
+						continue;
+					}
+					
+					ArrayList<String> files = FileUtility.getFiles(path);
+					
+					File file = new File(path);
+					
+					if (file.isFile()) {
+						myIndexedLoc.add(path.substring(0, path.lastIndexOf("/")));
+						System.out.println(path.substring(0, path.lastIndexOf("/")));
+						files.add(0, path.substring(0, path.lastIndexOf("/")));
+						
+					}
+					
+					else if(file.isDirectory())
+					{
+						myIndexedLoc.add(path);
+						files.add(0, path);
+					}
+					
+					if (files.size() > 1)
+					{
+						startTime = System.currentTimeMillis();
+						
+						peerRequest = new Request();
+						peerRequest.setRequestType("REGISTER");
+						peerRequest.setRequestData(files);
+						out.writeObject(peerRequest);
+						
+						// Retrieve response from the server
+						serverResponse = (Response) in.readObject();
+						endTime = System.currentTimeMillis();
+						time = (double) Math.round(endTime - startTime) / 1000;
+						
+						// If Response is success i.e. Response Code = 200, then print success message else error message
+						if (serverResponse.getResponseCode() == 200) {
+							/*indexedLocations =  (ArrayList<String>) serverResponse.getResponseData();
+							for (String x : indexedLocations) {
+								if (!myIndexedLoc.contains(x)) {
+									myIndexedLoc.add(x);
+								}
+							}*/
+							System.out.println((files.size() - 1) + " files registered with indexing server. Time taken:" + time + " seconds.");
+						} else {
+							System.out.println("Unable to register files with server. Please try again later.");
+						}
+					} else {
+						System.out.println("0 files found at this location. Nothing registered with indexing server.");
+					}
+					break;
+				
+				case 5: 
+					System.out.println("\nEnter name of the file you want to look for at indexing server:");
+					String fileName = input.readLine();
+					String hostAddress;
+					
+					startTime = System.currentTimeMillis();
+					// Setup a Request object with Request Type = LOOKUP and Request Data = file to be searched
+					peerRequest = new Request();
+					peerRequest.setRequestType("LOOKUP");
+					peerRequest.setRequestData(fileName);
+					out.writeObject(peerRequest);
+					
+					serverResponse = (Response) in.readObject();
+					endTime = System.currentTimeMillis();
+					time = (double) Math.round(endTime - startTime) / 1000;
+					
+					// If Response is success i.e. Response Code = 200, then perform download operation else error message
+					if (serverResponse.getResponseCode() == 200) {
+						System.out.println("File Found. Lookup time: " + time + " seconds.");
+						
+						// Response Data contains the List of Peers which contain the searched file
+						HashMap<Integer, String> lookupResults = (HashMap<Integer, String>) serverResponse.getResponseData();
+						
+						// Printing all Peer details that contain the searched file
+						if (lookupResults != null) {
+							for (Map.Entry e : lookupResults.entrySet()) {
+								System.out.println("\nPeer ID:" + e.getKey().toString());
+								System.out.println("Host Address:" + e.getValue().toString());
+							}
+						}
+						
+						// If the file is a Text file then we can print or else only download file
+						if (fileName.trim().endsWith(".txt")) {
+							System.out.print("\nDo you want to download (D) or print this file (P)? Enter (D/P):");
+							String download = input.readLine();
+							
+							// In case there are more than 1 peer, then we user will select which peer to use for download
+							if(lookupResults.size() > 1) {
+								System.out.print("Enter Peer ID from which you want to download the file:");
+								int peerId = Integer.parseInt(input.readLine());
+								hostAddress = lookupResults.get(peerId);
+							} else {
+								Map.Entry<Integer,String> entry = lookupResults.entrySet().iterator().next();
+								hostAddress = entry.getValue();
+							}
+							
+							if (download.equalsIgnoreCase("D")) {
+								System.out.println("The file will be downloaded in the 'downloads' folder in the current location.");
+								// Obtain the searched file from the specified Peer
+								obtain(hostAddress, 20000, fileName, out, in);
+							} else if (download.equalsIgnoreCase("P")) {
+								// Obtain the searched file from the specified Peer and print its contents
+								obtain(hostAddress, 20000, fileName, out, in);
+								FileUtility.printFile(fileName);
+							}
+						} else {
+							System.out.print("\nDo you want to download this file?(Y/N):");
+							String download = input.readLine();
+							if (download.equalsIgnoreCase("Y")) {
+								if(lookupResults.size() > 1) {
+									System.out.print("Enter Peer ID from which you want to download the file:");
+									int peerId = Integer.parseInt(input.readLine());
+									hostAddress = lookupResults.get(peerId);
+								} else {
+									Map.Entry<Integer,String> entry = lookupResults.entrySet().iterator().next();
+									hostAddress = entry.getValue();
+								}
+								// Obtain the searched file from the specified Peer
+								obtain(hostAddress, 20000, fileName, out, in);
+							}	
+						}					
+					} else {
+						System.out.println((String) serverResponse.getResponseData());
+						System.out.println("Lookup time: " + time + " seconds.");
+					}
+					break;
+				
+				case 6: 
+					// Confirming user's un-register request
+					System.out.print("\nAre you sure (Y/N)?:");
+					String confirm = input.readLine();
+					
+					if (confirm.equalsIgnoreCase("Y")) {
+						startTime = System.currentTimeMillis();
+						// Setup a Request object with Request Type = UNREGISTER and Request Data = general message
+						peerRequest = new Request();
+						peerRequest.setRequestType("UNREGISTER");
+						peerRequest.setRequestData("Un-register all files from index server.");
+						out.writeObject(peerRequest);
+						endTime = System.currentTimeMillis();
+						time = (double) Math.round(endTime - startTime) / 1000;
+						
+						serverResponse = (Response) in.readObject();
+						System.out.println((String) serverResponse.getResponseData());
+						System.out.println("Time taken:" + time + " seconds.");
+					}
+					break;
 				// Printing the download log
-				case 4:
+				case 7:
 					(new LogUtility("peer")).print();
 					break;
 					
 				// Handling Peer exit functionality
-				case 5:
+				case 8:
 					// Confirming user's exit request
 					System.out.print("\nExiting will delete all (KEY, VALUE) pairs stored on this node and will no longer be accessible by other nodes in this network. Are you sure you want to exit? (Y/N)?:");
 					confirm = input.readLine();
@@ -206,10 +416,12 @@ public class PeerClient extends Thread {
 				// Closing all streams. Close the stream only if it is initialized 
 				if (input != null)
 					input.close();
+	
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+	}
 	}
 	
 	/***

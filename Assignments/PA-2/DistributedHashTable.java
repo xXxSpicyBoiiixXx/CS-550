@@ -13,6 +13,7 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,24 +24,42 @@ import java.util.concurrent.ConcurrentHashMap;
  * The class DistributedHashTable defines the methods and structures (variables) which maintains the Hash Table in the network.
  */
 public class DistributedHashTable {
+	
 	// <KEY, VALUE> Hash Table
 	private static ConcurrentHashMap<String, String> hashTable = new ConcurrentHashMap<String, String>();
+	
 	// <PEER_IP, <KEY, VALUE>> Hash Table
 	private static ConcurrentHashMap<String, HashMap<String, String>> replicatedHashTable = new ConcurrentHashMap<String, HashMap<String, String>>();
+	
+	// Database
+	private static ConcurrentHashMap<String, ArrayList<String>> indexDatabase = new ConcurrentHashMap<String, ArrayList<String>>();
+	
+	// Peer Locations
+	private static ConcurrentHashMap<String, ArrayList<String>> peerIndexedLocations = new ConcurrentHashMap<String, ArrayList<String>>();
+	
+	// Replicated Nodes
+	private static List<String> replicationNodes = Collections.synchronizedList(new ArrayList<String>());
+	
 	
 	private static HashMap<Integer, String> networkMap = new HashMap<Integer, String>();
 	private static ArrayList<String> replicationNodes = new ArrayList<String>();
 	
-	private static final int PEER_SERVER_PORT = 20000;
+	private static final String REPLICA_LOCATION = "replica/";
+	
+	private static final int SERVER_SOCKET_PORT = 10000;
+	private static final int PEER_SERVER_PORT = 11000;
 	private static final String LOCAL_ADDRESS = NetworkUtility.getLocalAddress();
 	
+	// Counter for peers connected
+	private static int totalPeers = 0;
+	
 	/**
-	 * This methods adds a (KEY,VALUE) pair in the Distributed Hash Table (hashTable) if the KEY is not already present.
-	 * @param key		KEY should be 24 bytes (12 characters) maximum.
-	 * @param value		VALUE should be 1000 bytes (500 characters) maximum.
-	 * @param confirm	If confirm = true, then KEY check is not done and the (KEY,VALUE) pair is inserted to the hashTable even if the KEY already exists.
-	 * 					In this case, the old value of the KEY is replaced by the new VALUE.
-	 * @return			Returns true if KEY is added in the hashTable successfully else returns false if a VALUE with the KEY already exists.
+	 *  This methods adds a (KEY,VALUE) pair in the Distributed Hash Table (hashTable) if the KEY is not already present.
+	 *  key		KEY should be 24 bytes (12 characters) maximum.
+	 *  value		VALUE should be 1000 bytes (500 characters) maximum.
+	 *  If confirm = true, then KEY check is not done and the (KEY,VALUE) pair is inserted to the hashTable even if the KEY already exists.
+	 * 	In this case, the old value of the KEY is replaced by the new VALUE.
+	 * 	Returns true if KEY is added in the hashTable successfully else returns false if a VALUE with the KEY already exists.
 	 */
 	public static boolean putInHashTable(String key, String value, boolean confirm) {
 		if (confirm || !hashTable.containsKey(key)) {
@@ -178,8 +197,276 @@ public class DistributedHashTable {
 	public static String getLocalAddress() {
 		return LOCAL_ADDRESS;
 	}
+
 	
-	public static void main(String[] args) throws IOException {
+	private static class Indexer extends Thread {
+		private Socket socket;
+		private int clientNumber;
+		
+		public Indexer(Socket socket, int clinetNumber) {
+			
+			this.socket = socket;
+			this.clientNumber = clientNumber;
+			print("\nNew connection with Peer # " + clientNumber + " at " + socket.getInetAddress());
+			totalPeers++;
+			print("Total numer of peers connected:" + totalPeers);
+		}
+	}
+	
+	public void run() {
+        try {
+        	// Initializing output stream using the socket's output stream
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            
+            // Initializing input stream using the socket's input stream
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            String clientIp = socket.getInetAddress().getHostAddress();
+
+            // Send a welcome message to the client
+            Response response = new Response();
+            response.setResponseCode(200);
+            response.setResponseData("Hello, you are Peer #" + clientNumber + ".\nDo you want your node to act as a replication node? This requires your disk space to be large. (Y/N):");
+            out.writeObject(response);
+            
+            Request peerRequest = (Request) in.readObject();
+            String requestType = peerRequest.getRequestType();
+            String replicaChoice = (String) peerRequest.getRequestData();
+            
+            if (replicaChoice.equalsIgnoreCase("Y")) {
+            	System.out.println("Replication with this node accepted.");
+            	
+            	if (!replicationNodes.contains(clientIp)) {
+            		replicationNodes.add(clientIp);
+				}
+            	
+            	// Just to remind peer if he is acting as a replication node
+            	if (peerIndexedLocations.containsKey(clientIp)) {
+    				peerIndexedLocations.get(clientIp).add(REPLICA_LOCATION);
+    			} else {
+    				ArrayList<String> paths = new ArrayList<String>();
+    	        	paths.add(REPLICA_LOCATION);
+    	        	peerIndexedLocations.put(clientIp, paths);
+    			}
+            	
+            	response = new Response();
+            	response.setResponseCode(200);
+                response.setResponseData(indexDatabase);
+                out.writeObject(response);
+			}
+            
+            response = new Response();
+            response.setResponseCode(200);
+            response.setResponseData(peerIndexedLocations.get(clientIp));
+            out.writeObject(response);
+            
+            while(true) {
+            	// Read the request object received from the Peer
+            	peerRequest = (Request) in.readObject();
+                requestType = peerRequest.getRequestType();
+                
+                if (requestType.equalsIgnoreCase("REGISTER")) {
+                	// If Request Type = REGISTER, then call register(...) method to register the peer's files
+                	ArrayList<String> indexedLocations = register(clientNumber, clientIp, (ArrayList<String>) peerRequest.getRequestData(), out);
+                	response = new Response();
+                	response.setResponseCode(200);
+                    response.setResponseData(indexedLocations);
+                    out.writeObject(response);
+				} else if (requestType.equalsIgnoreCase("LOOKUP")) {
+					print("\nLooking up a file.");
+					String fileName = (String) peerRequest.getRequestData();
+					
+					// If Request Type = LOOKUP, then call search(...) method to search for the specified file
+					print("Request from Peer # " + clientNumber + " (" + clientIp + ") to look for file " + fileName);
+					HashMap<Integer, String> searchResults = search(fileName);
+					
+					// If file found then respond with all the peer locations that contain the file or else send File Not Found message
+					if (searchResults.size() > 0) {
+						response = new Response();
+						response.setResponseCode(200);
+						response.setResponseData(searchResults);
+						out.writeObject(response);
+						print("File Found.");
+					} else {
+						response = new Response();
+						response.setResponseCode(404);
+						response.setResponseData("File Not Found.");
+						out.writeObject(response);
+						print("File Not Found.");
+					}
+				} else if(requestType.equalsIgnoreCase("UNREGISTER")) {
+					// If Request Type = UNREGISTER, then call unregister(...) method to remove all the files of the requested 
+					// peer from the indexing server's database
+					response = new Response();
+					if (unregister(clientIp)) {
+						response.setResponseCode(200);
+						response.setResponseData("Your files have been un-registered from the indexing server.");
+						print("Peer # " + clientNumber + " (" + clientIp + ") has un-registered all its files.");
+					} else {
+						response.setResponseCode(400);
+						response.setResponseData("Error in un-registering files from the indexing server.");
+					}
+					out.writeObject(response);
+				} else if(requestType.equalsIgnoreCase("GET_BACKUP_NODES")) {
+					// Sends replication peers/nodes to the peer who is not able to download a file from its original peer.
+					System.out.println("\n" + clientIp + " requested backup nodes info. Sending backup nodes info.");
+					response = new Response();
+					response.setResponseCode(200);
+					response.setResponseData(replicationNodes);
+					out.writeObject(response);
+					System.out.println("Backup nodoes information sent.");
+				} else if(requestType.equalsIgnoreCase("DISCONNECT")) {
+					print("\nPeer # " + clientNumber + " disconnecting...");
+					try {
+						// Close the connection and then stop the thread.
+	                    socket.close();
+	                } catch (IOException e) {
+	                    print("Couldn't close a socket.");
+	                }
+	                Thread.currentThread().interrupt();
+	                break;
+				}
+            }
+        } catch(EOFException e) {
+        	Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            print("Error handling Peer # " + clientNumber + ": " + e);
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    // Stop thread once the peer has disconnected or some error has occurred in serving the peer.
+    public void interrupt() {
+    	print("\nConnection with Peer # " + clientNumber + " closed");
+    	totalPeers--;
+    	print("Total number of peers connected:" + totalPeers);
+    	if (totalPeers == 0) {
+    		print("No more peers connected.");
+		}
+    }
+    
+    private void print(String message) {
+    	LogUtility log = new LogUtility("server");
+    	log.write(message);
+    	log.close();
+        System.out.println(message);
+    }
+    
+    private ArrayList<String> register(int peerId, String peerAddress, ArrayList<String> files, ObjectOutputStream out) throws IOException {
+    	print("\nRegistering files from Peer " + peerAddress);
+    	
+    	// Appending HHmmss just to make the key unique because a single peer may register multiple times. We aren't using the last appended data.
+    	String time = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+    	
+    	// Retrieving path and storing them separately
+    	if (peerIndexedLocations.containsKey(peerAddress)) {
+			peerIndexedLocations.get(peerAddress).add(files.get(0));
+		} else {
+			ArrayList<String> paths = new ArrayList<String>();
+        	paths.add(files.get(0));
+        	peerIndexedLocations.put(peerAddress, paths);
+		}
+    	files.remove(0);
+    	
+    	// Using StringBuffer to avoid creation of multiple string objects while appending
+    	StringBuffer sb = new StringBuffer();
+    	sb.append(clientNumber).append("#").append(peerAddress).append("#").append(time);
+        indexDatabase.put(sb.toString(), files);
+        
+        print(files.size() + " files synced with Peer " + clientNumber + " and added to index database");
+        
+        ConcurrentHashMap<String, ArrayList<String>> newFiles = new ConcurrentHashMap<String, ArrayList<String>>();
+        newFiles.put(sb.toString(), files);
+        sendReplicateCommand(newFiles);
+        
+        return peerIndexedLocations.get(peerAddress);
+    }
+    
+    private boolean unregister(String peerAddress) throws IOException {
+    	int oldSize = indexDatabase.size();
+    	ArrayList<String> deleteFiles = null;
+    	
+    	for (Map.Entry e : indexDatabase.entrySet()) {
+			String key = e.getKey().toString();
+			ArrayList<String> value = (ArrayList<String>) e.getValue();
+			
+			if (key.contains(peerAddress)) {
+				deleteFiles = indexDatabase.get(key);
+				indexDatabase.remove(key);
+			}
+		}
+    	int newSize = indexDatabase.size();
+    	
+    	
+    	// Send request to delete the unregistered files from the replication node
+    	if (newSize < oldSize) {
+    		Request serverRequest = new Request();
+        	Socket socket = null;
+        	try {
+        		serverRequest.setRequestType("DELETE_DATA");
+            	for (String node : replicationNodes) {
+            		socket = new Socket(node, PEER_SERVER_PORT);
+            		ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+    				serverRequest.setRequestData(deleteFiles);
+    				out.writeObject(serverRequest);
+    				out.close();
+    				socket.close();
+    			}
+            	socket = null;
+			} catch (Exception e) {
+				print("Error in replication:" + e);
+			} finally {
+				serverRequest = null;
+				if (socket != null && socket.isConnected()) {
+					socket.close();
+				}
+			}
+		}
+    	
+    	return (newSize < oldSize);
+    }
+    
+    private HashMap<Integer, String> search(String fileName) {
+    	HashMap<Integer, String> searchResults = new HashMap<Integer, String>();
+		for (Map.Entry e : indexDatabase.entrySet()) {
+			String key = e.getKey().toString();
+			ArrayList<String> value = (ArrayList<String>) e.getValue();
+			
+			for (String file : value) {
+				if (file.equalsIgnoreCase(fileName)) {
+					int peerId = Integer.parseInt(key.split("#")[0].trim());
+					String hostAddress = key.split("#")[1].trim();
+					searchResults.put(peerId, hostAddress);
+				}
+			}
+		}
+		return searchResults;
+    }
+
+    private void sendReplicateCommand(ConcurrentHashMap<String, ArrayList<String>> newFiles) throws IOException {
+    	Request serverRequest = new Request();
+    	Socket socket = null;
+    	try {
+    		serverRequest.setRequestType("REPLICATE_DATA");
+        	for (String node : replicationNodes) {
+        		socket = new Socket(node, PEER_SERVER_PORT);
+        		ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+				serverRequest.setRequestData(newFiles);
+				out.writeObject(serverRequest);
+				out.close();
+				socket.close();
+			}
+        	socket = null;
+		} catch (Exception e) {
+			print("Error in replication:" + e);
+		} finally {
+			serverRequest = null;
+			if (socket != null && socket.isConnected()) {
+				socket.close();
+			}
+		}
+    }
+    public static void main(String[] args) throws IOException {
 		FileInputStream fileStream = null;
 		
 		try {
@@ -244,19 +531,31 @@ public class DistributedHashTable {
 		}
 		
 		// Start a new Thread which acts as Client on Peer side
-		System.out.println("********** PEER CLIENT STARTED **********");
+		System.out.println("...Peer client started...");
 		PeerClient peerClient = new PeerClient();
 		peerClient.start();
+		private static class PeerServer extends Thread {
+			private Socket socket;
+			private LogUtility log = new LogUtility("peer");
+			
+	        public PeerServer(Socket socket) {
+	            this.socket = socket;
+	            log.write("File downloading with " + socket.getInetAddress() + " started.");
+	        }
+		
 		
 		/**
 		 * Peer's server implementation. It runs in an infinite loop listening
 		 * on port 20000. When a a file download is requested, it spawns a new
 		 * thread to do the servicing and immediately returns to listening.
 		 */
-		System.out.println("********** PEER SERVER STARTED **********");
-		ServerSocket listener = new ServerSocket(PEER_SERVER_PORT);
+		System.out.println("...Peer indexing server started...");
+		ServerSocket listener = new ServerSocket(SERVER_SOCKET_PORT);
+		int peerId = 1;
+		
         try {
             while (true) {
+            	new Indexer(listener.accept(), peerID++.start());
             	PeerServer peerServer = new PeerServer(listener.accept());
                peerServer.start();
             }
@@ -264,3 +563,7 @@ public class DistributedHashTable {
             listener.close();
         }
 	}
+}
+}
+
+
