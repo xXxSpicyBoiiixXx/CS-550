@@ -28,7 +28,7 @@ public class LogUtility {
 
   public LogUtility(String logType) {
     try {
-      if (logType.equalsIgnoreCase("Client")) {
+      if (logType.equalsIgnoreCase("Peer")) {
         logFile = "download.log";
       } else if (logType.equalsIgnoreCase("Server")) {
         logFile = "server.log";

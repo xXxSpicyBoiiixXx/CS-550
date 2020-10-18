@@ -6,7 +6,7 @@
  * BUGS: -- 
  * AUTHOR: xXxSpicyBoiiixXx (Md Ali)
  * ORGANIZATION: IIT
- * VERSION: 1.0
+ * VERSION: 1.1
  * CREATED: 10/02/2020
  * REVISION: -- 
 */
@@ -29,17 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FileUtility {
 
 	private static final String downloadLocation = "downloads/";
-	private static final String replicaLocation = "replica/";
-	private static final int BUFFER_SIZE = 1024 * 64; // 64 KiloBytes
+	private static final String replicaLocation = DHT_FileTransfer.getReplicaLocation();
 
+	// Get all files
 	public static ArrayList<String> getFiles(String path) {
 		ArrayList<String> files = new ArrayList<String>();
 		File folder = new File(path);
 		if (folder.isDirectory()) {
 			File[] listOfFiles = folder.listFiles();
-			//Some testing
-			//path = path.endsWith("/") ? path : path.concat("/");
-			
 			if (listOfFiles != null) {
 				for (int i = 0; i < listOfFiles.length; i++) {
 					if (listOfFiles[i].isFile()) {
@@ -57,6 +54,7 @@ public class FileUtility {
 		return files;
 	}
 	
+	// Finds the desired file
 	public static String getFileLocation(String fileName, List<String> locations) {
 		String fileLocation = "";
 		boolean fileFound = false;
@@ -77,15 +75,15 @@ public class FileUtility {
 		return fileLocation;
 	}
 	
-	public static boolean downloadFile(String hostAddress, int port, String fileName) {
-		InputStream in = null;
-		BufferedOutputStream fileOutput = null;
+	// DOwnloads file(s) from a peer
+	public static boolean downloadFile(String hostAddress, int port, String fileName, boolean fromReplica) {
+		ObjectInputStream in = null;
 		ObjectOutputStream out = null;
 		Socket socket = null;
 		boolean isDownloaded = false;
 		
 		try {
-			// Establish connection to the client or server for which contains the file for downloading.
+			// Establish connection to the peer which contains the file for downloading.
 			socket = new Socket(hostAddress, port);
 			System.out.println("\nDownloading file " + fileName);
 			
@@ -100,23 +98,20 @@ public class FileUtility {
 
 			System.out.println("Requesting file.........");
 			Request request = new Request();
-			request.setRequestType("DOWNLOAD");
+			if (fromReplica) {
+				request.setRequestType("R_DOWNLOAD");
+			} else {
+				request.setRequestType("DOWNLOAD");
+			}
 			request.setRequestData(fileName);
 			out.writeObject(request);
-			
-			
-			// Download file from the output stream
+
 			System.out.println("Downloading file........");
-			byte[] mybytearray = new byte[BUFFER_SIZE];
-			in = socket.getInputStream();
-			fileOutput = new BufferedOutputStream(new FileOutputStream(downloadLocation + fileName));
+			in = new ObjectInputStream(socket.getInputStream());
 			
-			// Reading incoming stream in chunks
-			int bytesRead;
-			while ((bytesRead = in.read(mybytearray, 0, mybytearray.length)) > 0)
-			{
-				fileOutput.write(mybytearray, 0, bytesRead);
-			}
+			file = new File(downloadLocation + fileName);
+			byte[] bytes = (byte[]) in.readObject();	
+			Files.write(file.toPath(), bytes);
 			
 			if((new File(downloadLocation + fileName)).length() == 0) {
 				isDownloaded = false;
@@ -125,25 +120,17 @@ public class FileUtility {
 				isDownloaded = true;
 			}
 		} catch(SocketException e) {
-			
 			isDownloaded = false;
-			
 		} catch (Exception e) {
-			
+
 			isDownloaded = false;
 			
 		} finally {
 			try {
-			
 				if (out != null)
 					out.close();
-				
 				if (in != null)
 					in.close();
-				
-				if (fileOutput != null)
-					fileOutput.close();
-				
 				if (socket != null)
 					socket.close();
 			} catch (Exception ex) {
@@ -152,10 +139,10 @@ public class FileUtility {
 		}
 		return isDownloaded;
 	}
-
+	
+	// Basically like the download chunk of code with modifications.
 	public static boolean replicateFile(String hostAddress, int port, String fileName) {
-		InputStream in = null;
-		BufferedOutputStream fileOutput = null;
+		ObjectInputStream in = null;
 		ObjectOutputStream out = null;
 		Socket socket = null;
 		boolean isReplicated = false;
@@ -166,6 +153,7 @@ public class FileUtility {
 			
 			socket = new Socket(hostAddress, port);
 			
+			// Create a replica folder if it doesn't exist
 			File file = new File(replicaLocation);
 			if (!file.exists())
 				file.mkdir();
@@ -179,23 +167,20 @@ public class FileUtility {
 			request.setRequestData(fileName);
 			out.writeObject(request);
 
+			// Download file from the output stream
 			log.write("Downloading file ... " + fileName);
-			byte[] mybytearray = new byte[BUFFER_SIZE];
-			in = socket.getInputStream();
-			fileOutput = new BufferedOutputStream(new FileOutputStream(replicaLocation + fileName));
+			in = new ObjectInputStream(socket.getInputStream());
 			
-			int bytesRead;
-			while ((bytesRead = in.read(mybytearray, 0, mybytearray.length)) > 0)
-			{
-				fileOutput.write(mybytearray, 0, bytesRead);
-			}			
+			file = new File(replicaLocation + fileName);
+			byte[] bytes = (byte[]) in.readObject();	
+			Files.write(file.toPath(), bytes);			
 			
 			long endTime = System.currentTimeMillis();
 			double time = (double) Math.round(endTime - startTime) / 1000;
 			log.write("File downloaded successfully in " + time + " seconds.");
 			isReplicated = true;
 		} catch(SocketException e) {
-			log.write("Unable to connect to the host. Unable to download file.");
+			log.write("Unable to connect to the host. Unable to  download file.");
 			isReplicated = false;
 			log.write("Error:" + e);
 		} catch (Exception e) {
@@ -206,16 +191,10 @@ public class FileUtility {
 			try {
 				if (out != null)
 					out.close();
-				
 				if (in != null)
 					in.close();
-				
-				if (fileOutput != null)
-					fileOutput.close();
-				
 				if (socket != null)
 					socket.close();
-				
 				if (log != null)
 					log.close();
 			} catch (Exception ex) {
@@ -225,15 +204,16 @@ public class FileUtility {
 		return isReplicated;
 	}
 
+	// Prints after download
 	public static void printFile(String fileName) {
 		File file = new File(downloadLocation + fileName);
 		if (file.exists()) {
-			System.out.println("\nTHE FILE HAS BEEN DOWNLOADED TO THE downloads FOLDER IN THE CURRENT LOCATION");
-			System.out.println("AND THE CONTENTS OF THE FILE ARE BELOW. PRINTING ONLY FIRST 1000 CHARACTERS.");
+			System.out.println("\nThe file has been downloaded in the downloads folder. Will only print the first 1000 characters.");
 			BufferedReader br = null;
 			int charCount = 0;
 			
 			try {
+
 				br = new BufferedReader(new FileReader(downloadLocation + fileName));
 				String line = null;
 				while ((line = br.readLine()) != null) {
@@ -257,4 +237,12 @@ public class FileUtility {
 		}
 	}
 	
+	public static boolean deleteFile(String fileName) {
+		File file = new File(replicaLocation + fileName);
+		if (file.exists()) {
+			return file.delete();
+		}
+		return false;
+	}
 }
+	
