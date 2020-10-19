@@ -11,23 +11,17 @@
  * REVISION: -- 
 */
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerClient extends Thread {
 	
@@ -472,7 +466,7 @@ public class PeerClient extends Thread {
 		
 			if (nodeAddress.equals(localAddress)) {
 			
-				value = FileTransferSystem.getFromHashTable(key);
+				value = DHT_FileTransfer.getFromHashTable(key);
 			} else {
 				
 		        socket = new Socket(nodeAddress, portAddress);

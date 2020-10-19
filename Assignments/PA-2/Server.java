@@ -12,20 +12,14 @@
  * REVISION: -- 
 */
 
-import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
+import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 
 public class Server extends Thread {
@@ -268,7 +262,7 @@ public class Server extends Thread {
 		super.interrupt();
 	}
 }
-}
+
 /*public class Server {
 
   // serverDatabase is a concurrent hash map used to store all the files registered from various clients.
