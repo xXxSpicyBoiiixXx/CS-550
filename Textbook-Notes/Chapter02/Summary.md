@@ -1,21 +1,16 @@
-# Chapter 01 Notes 
+# Summary 
 
-The notes here are broken up into sections on what I deemed most important from the textbook and written in a way that makes sense to me to review for later. Below are terms in this chapter that helped me understand it better.
+* We can organize distributed systems in various methods. 
 
-## Some Vocabulary
+*  There is a distinction between software architecuture and system architecture. 
 
-* Plug Computers: Small computers that can be plugged directly into an outlet an offer near-desktop performance.
+* Software architecture deals with the logical organization of the software such as how do compoennets interact, in what ways can they be structured, how can they be made independent, etc. 
 
-* Node: A computing element. Can be either hardware device or a software process.
+* System architecutre deal with the components that constitue a distributed system place across t
+he various machiens. 
 
-* Open Group: Any node is allowed to join the distributed system. Meaning it can send messages to any node in the system.
+* One way distributed system can be organzied is in a client-server fasion. This is tradition way of modularizing  software in which a module calls the function available in another module.. By doing so we get a natural physical distribution of function across a collection of machines. These arictecutres are generally highly centralized. 
 
-* Closed Group: Only the members of that group can communicate with each other, there is a spiecal mechnaism needed to let a node join or leave this type of group. 
+* In decentralized architecures we see an equal role played by process taht constitute a distributed system aka P2P systems.  
 
-* Structured Overlay Network: Each node has a well-definded set of neighbors with who they communicate with. e.g. tree or logical ring.
-
-* Unstructed Overlay Network: Each node has a number of referecnes to randomly selected other nodes. 
-
-* Distribution Transparency: The user should not be able to tell which computer a process is executing, where the data is stored, or anything else. 
-
-* Middleware: Often organized with distributed systems as a separate layer of software placed on top of the operating systems of computers that are in the system.
+* In hybrid architecures, elements from centeralized and decentralized organizations are combined. This is important for BitTorrent-basd systems.

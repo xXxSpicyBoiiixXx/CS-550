@@ -97,4 +97,22 @@ The system as whole is now responsible for storing (key, value) pairs.
 
 #### Hybrid Architectures
 
+* This is where client-server and P2P networks come together. This section effectly take specfic classes of distributed systems in which client-server solution are combined with decentralized architectures. 
+
+#### Edge-Server Systems 
+
+* Edge-server Systems: The systems are deployed on the Internet where servers are placed "at the edge" of the network. This edge is formed by the boundary between enterprise networks and the actual Internet. 
+
+* Origin Server: One edge server acts as the origin server for which all content orginates. 
+
+#### Collaborative Distributed Systems
+
+* Typically hybrid strucutres are deployed in collaborative distributed systems. 
+
+* Free Riding: In most file-sharing systems, a significany fraction of participants merely download files but otherwise contribute close to nothing. 
+
+* Torrent File: Contain the information to download a specfic file, it also contain a link to what is knowns as a tracker, which is a server that is keeping an accurate accoubnt of active nodes that have chunks of the requested file. 
  
+* BitTorrent comvines centralized with decentralized solutions. As it turns out, the bottleneck of the system is, not surprisinly, formed by the trackers. In an alternative implementation of BitTorrent, a node also joins a separate strucuted P2P (DHT) to assist in tracking file downloads. The initial tracker for the requested file is looked up in the DHT through a so-called magnet link. 
+
+
