@@ -10,43 +10,46 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class FileUtility {
 
     private static final String downloadLocation = "downloads/";
     private static final String replicaLocation = DHT_FileTransfer.getReplicaLocation();
 
-    public static ArrayList<String> getFiles(String path){
+    // Get all files
+    public static ArrayList<String> getFiles(String path) {
         ArrayList<String> files = new ArrayList<String>();
         File folder = new File(path);
-        if(folder.isDirectory()){
+        if (folder.isDirectory()) {
             File[] listOfFiles = folder.listFiles();
-            if(listOfFiles != null){
-                for (int i = 0; i < listOfFiles.length; i++){
-                    if (listOfFiles[i].isFile()){
+            if (listOfFiles != null) {
+                for (int i = 0; i < listOfFiles.length; i++) {
+                    if (listOfFiles[i].isFile()) {
                         String file = listOfFiles[i].getName();
-                        if(!file.endsWith("~")){
+                        if(!file.endsWith("~")) {
                             files.add(file);
                         }
                     }
                 }
             }
-        }
-        else if(folder.isFile()){
+        } else if (folder.isFile()) {
             files.add(path.substring(path.lastIndexOf("/") + 1, path.length()));
         }
+
         return files;
     }
 
-    public static String getFileLocation(String fileName, List<String> locations){
-        String fileLocation ="";
+    // Finds the desired file
+    public static String getFileLocation(String fileName, List<String> locations) {
+        String fileLocation = "";
         boolean fileFound = false;
 
-        for (String path : locations){
+        for (String path : locations) {
             File folder = new File(path);
             File[] listOfFiles = folder.listFiles();
 
-            for(int i = 0; i < listOfFiles.length; i++){
-                if(listOfFiles[i].getName().equals(fileName)){
+            for (int i = 0; i < listOfFiles.length; i++) {
+                if(listOfFiles[i].getName().equals(fileName)) {
                     fileLocation = path.endsWith("/") ? path : path.concat("/");
                     fileFound = true;
                     break;
@@ -57,98 +60,99 @@ public class FileUtility {
         return fileLocation;
     }
 
-    public static boolean downloadFile(String hostAddress, int port, String fileName, boolean fromReplica)
-    {
+    // DOwnloads file(s) from a peer
+    public static boolean downloadFile(String hostAddress, int port, String fileName, boolean fromReplica) {
         ObjectInputStream in = null;
         ObjectOutputStream out = null;
         Socket socket = null;
         boolean isDownloaded = false;
 
         try {
+            // Establish connection to the peer which contains the file for downloading.
             socket = new Socket(hostAddress, port);
             System.out.println("\nDownloading file " + fileName);
 
+            // Create a download folder if it doesn't exist
             File file = new File(downloadLocation);
-            if(!file.exists())
+            if (!file.exists())
                 file.mkdir();
 
+            // Create an output stream using the socket's output stream.
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
 
-            System.out.println("Requesting file....");
+            System.out.println("Requesting file.........");
             Request request = new Request();
-
-            if(fromReplica){
+            if (fromReplica) {
                 request.setRequestType("R_DOWNLOAD");
-            }
-            else{
+            } else {
                 request.setRequestType("DOWNLOAD");
             }
             request.setRequestData(fileName);
             out.writeObject(request);
 
-            System.out.println("Downloading file....");
+            System.out.println("Downloading file........");
             in = new ObjectInputStream(socket.getInputStream());
 
             file = new File(downloadLocation + fileName);
             byte[] bytes = (byte[]) in.readObject();
             Files.write(file.toPath(), bytes);
 
-            if((new File(downloadLocation + fileName)).length() == 0){
+            if((new File(downloadLocation + fileName)).length() == 0) {
                 isDownloaded = false;
                 (new File(downloadLocation + fileName)).delete();
-            }
-            else {
+            } else {
                 isDownloaded = true;
             }
-        }
-        catch(SocketException e){
+        } catch(SocketException e) {
             isDownloaded = false;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
+
             isDownloaded = false;
-        }
-        finally{
-            try{
+
+        } finally {
+            try {
                 if (out != null)
                     out.close();
-
-                if (in  != null)
+                if (in != null)
                     in.close();
-
-                if(socket != null)
+                if (socket != null)
                     socket.close();
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
         return isDownloaded;
     }
 
-    public static boolean replicateFile(String hostAddress, int port, String fileName){
+    // Basically like the download chunk of code with modifications.
+    public static boolean replicateFile(String hostAddress, int port, String fileName) {
         ObjectInputStream in = null;
         ObjectOutputStream out = null;
         Socket socket = null;
         boolean isReplicated = false;
         LogUtility log = new LogUtility("replication");
 
-        try{
+        try {
             long startTime = System.currentTimeMillis();
 
             socket = new Socket(hostAddress, port);
 
+            // Create a replica folder if it doesn't exist
             File file = new File(replicaLocation);
-            if(!file.exists())
+            if (!file.exists())
                 file.mkdir();
 
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
 
-            log.write("Requesting file...." + fileName);
+            log.write("Requesting file ... " + fileName);
             Request request = new Request();
             request.setRequestType("DOWNLOAD");
             request.setRequestData(fileName);
             out.writeObject(request);
+
+            // Download file from the output stream
             log.write("Downloading file ... " + fileName);
             in = new ObjectInputStream(socket.getInputStream());
 
@@ -184,6 +188,8 @@ public class FileUtility {
         }
         return isReplicated;
     }
+
+    // Prints after download
     public static void printFile(String fileName) {
         File file = new File(downloadLocation + fileName);
         if (file.exists()) {
@@ -222,6 +228,5 @@ public class FileUtility {
             return file.delete();
         }
         return false;
-
     }
 }
