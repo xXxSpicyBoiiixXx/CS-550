@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -126,6 +127,7 @@ public class PeerClient extends Thread {
                                 System.out.print("\nDo you want to download this file?(Y/N):");
                                 String download = input.readLine();
                                 if (download.equalsIgnoreCase("Y")) {
+                                    // String hex = checksum("/files/" + fileName, MessageDigest md)
                                     obtain(hostAddress, portAddress, fileName);
                                 }
                             }

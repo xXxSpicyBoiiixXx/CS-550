@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.util.HashMap;
 
-public class Server extends Thread {
+public class Server extends Thread{
 
     private Socket socket = null;
     private LogUtility log = null;
@@ -217,7 +217,7 @@ public class Server extends Thread {
                 response.setResponseData(DHT_FileTransfer.getReplicatedHashTable());
                 out.writeObject(response);
 
-                log.write(String.format("REPLCATION DATA sent to %s successfully. Request completed. " + DHT_FileTransfer.getReplicatedHashTable(), clientIp));
+                log.write(String.format("REPLICATION DATA sent to %s successfully. Request completed. " + DHT_FileTransfer.getReplicatedHashTable(), clientIp));
             }
         } catch (Exception e) {
             //log.write("ERROR:" + e);

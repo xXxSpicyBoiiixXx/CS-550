@@ -10,7 +10,7 @@ public class FileCheckSumMD5 {
 
         MessageDigest md = MessageDigest.getInstance("MD5");
         // Enter file name here. 
-        String hex = checksum("/example/1.txt", md);
+        String hex = checksum("/files/1.txt", md);
         System.out.println(hex);
     }
 

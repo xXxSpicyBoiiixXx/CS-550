@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DHT_FileTransfer {
@@ -177,7 +178,22 @@ public class DHT_FileTransfer {
             catch(Exception e2){}
         }
 
+       Scanner in = new Scanner(System.in);
+        System.out.println("Enter the amount of process to the system");
+        int processes = in.nextInt();
+
+        MyThread[] t = new MyThread[processes];
+
+        for(int i = 0; i < processes; i++)
+            t[i] = new MyThread(new Process(i+1), processes);
+
+        Election.initialElection(t);
+
+        for(int i = 0; i < processes; i++)
+            new Thread(t[i]).start();
+
         System.out.println("....Peer Client Started....");
+
         PeerClient peerClient = new PeerClient();
         peerClient.start();
 
